@@ -431,7 +431,8 @@
     <div id="review-holder" class="row-gap"></div>
 
     <div class="row-gap">
-      <button class="primary" id="btn-retry">もう一度おなじ設定で挑戦</button>
+      <button class="primary" id="btn-retry-wrong" style="background: var(--bad); box-shadow: 0 4px 14px rgba(179,57,44,0.28); display:none;">間違えた問題だけやり直す</button>
+      <button class="primary" id="btn-retry" style="margin-top:10px;">もう一度おなじ設定で挑戦</button>
       <button class="ghost" id="btn-setting">設定にもどる</button>
     </div>
   </div>
@@ -597,7 +598,8 @@ let state = {
   idx: 0,
   score: 0,
   answered: false,
-  wrong: []
+  wrong: [],
+  wrongOnlyMode: false
 };
 
 const eraLabel = {nara:"奈良時代", heian:"平安時代"};
@@ -629,23 +631,26 @@ document.querySelectorAll('#count-picker .pick').forEach(el=>{
 
 document.getElementById('btn-start').addEventListener('click', startQuiz);
 document.getElementById('btn-retry').addEventListener('click', startQuiz);
+document.getElementById('btn-retry-wrong').addEventListener('click', startWrongOnlyQuiz);
 document.getElementById('btn-setting').addEventListener('click', ()=>{
   showScreen('setup');
 });
 document.getElementById('btn-next').addEventListener('click', nextQuestion);
+
+function reshuffleItem(q){
+  // shuffle choice order, tracking correct index
+  const order = shuffle(q.choices.map((c,i)=>i));
+  const choices = order.map(i=>q.choices[i]);
+  const a = order.indexOf(q.a);
+  return {era:q.era, q:q.q, note:q.note, choices, a};
+}
 
 function buildPool(){
   let base = QUESTIONS;
   if(state.era === 'nara') base = QUESTIONS.filter(q=>q.era==='nara');
   if(state.era === 'heian') base = QUESTIONS.filter(q=>q.era==='heian');
 
-  let pool = shuffle(base).map(q=>{
-    // shuffle choice order too, tracking correct index
-    const order = shuffle(q.choices.map((c,i)=>i));
-    const choices = order.map(i=>q.choices[i]);
-    const a = order.indexOf(q.a);
-    return {era:q.era, q:q.q, note:q.note, choices, a};
-  });
+  let pool = shuffle(base).map(reshuffleItem);
 
   if(state.count !== 'all'){
     pool = pool.slice(0, parseInt(state.count, 10));
@@ -658,6 +663,19 @@ function startQuiz(){
   state.idx = 0;
   state.score = 0;
   state.wrong = [];
+  state.wrongOnlyMode = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function startWrongOnlyQuiz(){
+  if(state.wrong.length === 0) return;
+  const items = state.wrong.map(w => w.orig);
+  state.pool = shuffle(items).map(reshuffleItem);
+  state.idx = 0;
+  state.score = 0;
+  state.wrong = [];
+  state.wrongOnlyMode = true;
   showScreen('quiz');
   renderQuestion();
 }
@@ -726,6 +744,7 @@ function selectChoice(i, btnEl){
     btnEl.classList.add('wrong');
     buttons[item.a].classList.add('correct');
     state.wrong.push({
+      orig: item,
       q: item.q,
       your: item.choices[i],
       right: item.choices[item.a],
@@ -767,7 +786,16 @@ function finishQuiz(){
   else if(pct >= 80) msg = 'とてもよくできました！';
   else if(pct >= 60) msg = 'もう少し！ 見直してみよう';
   else msg = 'ノートを見直して、もう一度挑戦しよう';
-  document.getElementById('res-msg').textContent = `正答率 ${pct}％　${msg}`;
+  const modeNote = state.wrongOnlyMode ? '（まちがえた問題のみ）' : '';
+  document.getElementById('res-msg').textContent = `正答率 ${pct}％　${msg}${modeNote}`;
+
+  const retryWrongBtn = document.getElementById('btn-retry-wrong');
+  if(state.wrong.length > 0){
+    retryWrongBtn.style.display = 'block';
+    retryWrongBtn.textContent = `間違えた${state.wrong.length}問だけやり直す`;
+  } else {
+    retryWrongBtn.style.display = 'none';
+  }
 
   const reviewHolder = document.getElementById('review-holder');
   reviewHolder.innerHTML = '';
