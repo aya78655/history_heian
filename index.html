@@ -294,9 +294,9 @@
   .feedback-banner{
     display: none;
     text-align: center;
-    padding: 20px 10px;
-    border-radius: 16px;
-    margin: 4px 0 18px;
+    padding: 10px 10px;
+    border-radius: 14px;
+    margin: 4px 0 16px;
     font-weight: 800;
   }
   .feedback-banner.show{
@@ -304,14 +304,14 @@
     animation: banner-pop .45s cubic-bezier(.26,1.4,.4,1);
   }
   .feedback-banner .fb-text{
-    font-size: clamp(28px, 8vw, 40px);
-    letter-spacing: 0.04em;
+    font-size: clamp(17px, 4.2vw, 20px);
+    letter-spacing: 0.03em;
     line-height: 1.2;
   }
   .feedback-banner.correct{
     background: var(--good-soft);
     border: 2px solid var(--good);
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--good) 12%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 12%, transparent);
   }
   .feedback-banner.correct .fb-text{ color: var(--good); }
   .feedback-banner.wrong{
@@ -320,7 +320,7 @@
   }
   .feedback-banner.wrong .fb-text{
     color: var(--bad);
-    font-size: clamp(20px, 6vw, 26px);
+    font-size: clamp(15px, 3.6vw, 17px);
   }
   @keyframes banner-pop{
     0%{ transform: scale(0.6); opacity: 0; }
