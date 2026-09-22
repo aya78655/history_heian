@@ -644,6 +644,11 @@ let state = {
 
 const eraLabel = {nara:"奈良時代", heian:"平安時代"};
 
+// references to the current 記述式 input/button (rebuilt every question,
+// so we avoid fixed ids — see submitTypedAnswer)
+let typeInputEl = null;
+let typeSubmitBtnEl = null;
+
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){
@@ -762,19 +767,52 @@ function renderQuestion(){
   holder.innerHTML = '';
 
   if(state.mode === 'type'){
-    const wrap = document.createElement('div');
-    wrap.innerHTML = `
-      <input type="text" id="type-answer-input" class="type-input" placeholder="ひらがな・漢字で入力してね" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <div class="type-hint">用語を正しく入力して「こたえる」を押してね</div>
-      <button class="primary" id="type-submit-btn">こたえる</button>
-    `;
-    holder.appendChild(wrap);
-    const input = document.getElementById('type-answer-input');
-    document.getElementById('type-submit-btn').addEventListener('click', submitTypedAnswer);
+    // build the input via createElement (not innerHTML) and give it a
+    // fresh random name/id every question, so browsers can't match it
+    // against previously-saved autofill entries and leak the answer.
+    const uniq = 'q' + state.idx + '_' + Math.random().toString(36).slice(2) + Date.now();
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'ti_' + uniq;
+    input.name = 'ti_' + uniq;
+    input.className = 'type-input';
+    input.placeholder = 'ひらがな・漢字で入力してね';
+    input.autocomplete = 'off';
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('autocorrect', 'off');
+    input.spellcheck = false;
+    // readonly-until-focus trick: most browsers refuse to offer saved
+    // autofill/prediction chips for a field that was readonly when the
+    // page loaded, even after we lift the readonly on focus.
+    input.readOnly = true;
+    input.addEventListener('focus', ()=> input.removeAttribute('readonly'), {once:true});
+
+    const hint = document.createElement('div');
+    hint.className = 'type-hint';
+    hint.textContent = '用語を正しく入力して「こたえる」を押してね';
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.className = 'primary';
+    submitBtn.id = 'sb_' + uniq;
+    submitBtn.textContent = 'こたえる';
+
+    holder.appendChild(input);
+    holder.appendChild(hint);
+    holder.appendChild(submitBtn);
+
+    typeInputEl = input;
+    typeSubmitBtnEl = submitBtn;
+
+    submitBtn.addEventListener('click', submitTypedAnswer);
     input.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter'){ e.preventDefault(); submitTypedAnswer(); }
     });
-    input.focus({preventScroll:true});
+    // no auto-focus on purpose: focusing an input right as it's created
+    // (before the user has tapped it) is what makes some mobile browsers
+    // treat it as "already active" and offer saved-value predictions.
+    // Waiting for a real tap keeps the readonly-until-focus trick effective.
   } else {
     const letters = ['A','B','C','D'];
     item.choices.forEach((choiceText, i)=>{
@@ -806,8 +844,9 @@ function renderQuestion(){
 function submitTypedAnswer(){
   if(state.answered) return;
   const item = state.pool[state.idx];
-  const input = document.getElementById('type-answer-input');
-  const submitBtn = document.getElementById('type-submit-btn');
+  const input = typeInputEl;
+  const submitBtn = typeSubmitBtnEl;
+  if(!input || !submitBtn) return;
   const userText = input.value.trim();
   const correctText = item.choices[item.a];
   const isCorrect = userText.length > 0 && normalizeAnswer(userText) === normalizeAnswer(correctText);
