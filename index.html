@@ -127,6 +127,7 @@
   }
   @media (min-width: 480px){
     .era-grid{ grid-template-columns: 1fr 1fr 1fr; }
+    .mode-grid{ grid-template-columns: 1fr 1fr; }
   }
 
   .pick{
@@ -277,6 +278,37 @@
   }
   .choice-btn.wrong .letter{ background: var(--bad); color: #fff; }
 
+  /* typed (記述式) answer input */
+  .type-input{
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  .type-input:focus{ outline: none; border-color: var(--accent); }
+  .type-input.correct{ border-color: var(--good); background: var(--good-soft); }
+  .type-input.wrong{ border-color: var(--bad); background: var(--bad-soft); }
+  .type-input:disabled{ opacity: 0.9; }
+  .type-hint{
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: -2px 0 10px;
+  }
+
+  .answer-reveal{
+    display: none;
+    margin-bottom: 8px;
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+  .answer-reveal b{ color: var(--accent-dark); font-size: 16px; }
+
   .explain{
     margin-top: 6px;
     padding: 14px 16px;
@@ -391,6 +423,12 @@
       <div class="pick selected" data-count="all"><span class="dot"></span>全問</div>
     </div>
 
+    <h2 class="section-title row-gap">③ 回答方法をえらぶ</h2>
+    <div class="choice-grid mode-grid" id="mode-picker">
+      <div class="pick selected" data-mode="choice"><span class="dot"></span>4択（選択式）</div>
+      <div class="pick" data-mode="type"><span class="dot"></span>記述式（入力）</div>
+    </div>
+
     <div class="row-gap">
       <button class="primary" id="btn-start">クイズをはじめる</button>
     </div>
@@ -411,6 +449,7 @@
     <div id="choices-holder"></div>
 
     <div class="explain" id="explain-box">
+      <div class="answer-reveal" id="answer-reveal"></div>
       <span class="result-badge" id="result-badge"></span>
       <b>解説：</b><span id="explain-text"></span>
     </div>
@@ -594,6 +633,7 @@ const QUESTIONS = [
 let state = {
   era: "all",
   count: "all",
+  mode: "choice",
   pool: [],
   idx: 0,
   score: 0,
@@ -613,6 +653,16 @@ function shuffle(arr){
   return a;
 }
 
+// lenient compare for typed (記述式) answers: ignore surrounding/inner
+// whitespace, full-width spaces, and common bracket/punctuation marks.
+function normalizeAnswer(str){
+  return (str || '')
+    .trim()
+    .replace(/[\s　]/g, '')
+    .replace(/[「」『』()（）,.、。・]/g, '')
+    .toLowerCase();
+}
+
 /* ---- setup screen interactions ---- */
 document.querySelectorAll('#era-picker .pick').forEach(el=>{
   el.addEventListener('click', ()=>{
@@ -626,6 +676,13 @@ document.querySelectorAll('#count-picker .pick').forEach(el=>{
     document.querySelectorAll('#count-picker .pick').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected');
     state.count = el.dataset.count;
+  });
+});
+document.querySelectorAll('#mode-picker .pick').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('#mode-picker .pick').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    state.mode = el.dataset.mode;
   });
 });
 
@@ -703,18 +760,39 @@ function renderQuestion(){
 
   const holder = document.getElementById('choices-holder');
   holder.innerHTML = '';
-  const letters = ['A','B','C','D'];
-  item.choices.forEach((choiceText, i)=>{
-    const btn = document.createElement('button');
-    btn.className = 'choice-btn';
-    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choiceText}</span>`;
-    btn.addEventListener('click', ()=>selectChoice(i, btn));
-    holder.appendChild(btn);
-  });
+
+  if(state.mode === 'type'){
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <input type="text" id="type-answer-input" class="type-input" placeholder="ひらがな・漢字で入力してね" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="type-hint">用語を正しく入力して「こたえる」を押してね</div>
+      <button class="primary" id="type-submit-btn">こたえる</button>
+    `;
+    holder.appendChild(wrap);
+    const input = document.getElementById('type-answer-input');
+    document.getElementById('type-submit-btn').addEventListener('click', submitTypedAnswer);
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); submitTypedAnswer(); }
+    });
+    input.focus({preventScroll:true});
+  } else {
+    const letters = ['A','B','C','D'];
+    item.choices.forEach((choiceText, i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choiceText}</span>`;
+      btn.addEventListener('click', ()=>selectChoice(i, btn));
+      holder.appendChild(btn);
+    });
+  }
 
   const explainBox = document.getElementById('explain-box');
   explainBox.classList.remove('show');
   document.getElementById('explain-text').textContent = '';
+
+  const reveal = document.getElementById('answer-reveal');
+  reveal.style.display = 'none';
+  reveal.innerHTML = '';
 
   const badge = document.getElementById('result-badge');
   badge.classList.remove('show', 'correct', 'wrong');
@@ -723,6 +801,49 @@ function renderQuestion(){
   const nextBtn = document.getElementById('btn-next');
   nextBtn.disabled = true;
   nextBtn.textContent = (state.idx === total-1) ? '結果を見る' : '次へ';
+}
+
+function submitTypedAnswer(){
+  if(state.answered) return;
+  const item = state.pool[state.idx];
+  const input = document.getElementById('type-answer-input');
+  const submitBtn = document.getElementById('type-submit-btn');
+  const userText = input.value.trim();
+  const correctText = item.choices[item.a];
+  const isCorrect = userText.length > 0 && normalizeAnswer(userText) === normalizeAnswer(correctText);
+
+  state.answered = true;
+  input.disabled = true;
+  submitBtn.disabled = true;
+  input.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  const badge = document.getElementById('result-badge');
+  if(isCorrect){
+    state.score++;
+    badge.textContent = '⭕ 正解';
+    badge.classList.add('correct');
+  } else {
+    state.wrong.push({
+      orig: item,
+      q: item.q,
+      your: userText || '（未回答）',
+      right: correctText,
+      note: item.note
+    });
+    badge.textContent = '❌ 不正解';
+    badge.classList.add('wrong');
+  }
+  badge.classList.remove('show');
+  void badge.offsetWidth;
+  badge.classList.add('show');
+
+  const reveal = document.getElementById('answer-reveal');
+  reveal.style.display = 'block';
+  reveal.innerHTML = `正解：<b>${correctText}</b>`;
+
+  document.getElementById('explain-text').textContent = item.note;
+  document.getElementById('explain-box').classList.add('show');
+  document.getElementById('btn-next').disabled = false;
 }
 
 function selectChoice(i, btnEl){
