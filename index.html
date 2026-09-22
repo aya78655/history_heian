@@ -290,45 +290,38 @@
   .explain.show{ display: block; }
   .explain b{ color: var(--accent-dark); }
 
-  /* correct / wrong feedback banner */
-  .feedback-banner{
-    display: none;
-    text-align: center;
-    padding: 10px 10px;
-    border-radius: 14px;
-    margin: 4px 0 16px;
+  /* correct / wrong result badge, shown to the left of "解説：" */
+  .result-badge{
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 13px;
     font-weight: 800;
+    margin-right: 8px;
+    vertical-align: middle;
+    transform: scale(0.7);
+    opacity: 0;
   }
-  .feedback-banner.show{
-    display: block;
-    animation: banner-pop .45s cubic-bezier(.26,1.4,.4,1);
+  .result-badge.show{
+    animation: badge-pop .35s cubic-bezier(.26,1.4,.4,1) forwards;
   }
-  .feedback-banner .fb-text{
-    font-size: clamp(17px, 4.2vw, 20px);
-    letter-spacing: 0.03em;
-    line-height: 1.2;
-  }
-  .feedback-banner.correct{
+  .result-badge.correct{
     background: var(--good-soft);
-    border: 2px solid var(--good);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 12%, transparent);
+    color: var(--good);
+    border: 1.5px solid var(--good);
   }
-  .feedback-banner.correct .fb-text{ color: var(--good); }
-  .feedback-banner.wrong{
+  .result-badge.wrong{
     background: var(--bad-soft);
-    border: 2px solid var(--bad);
-  }
-  .feedback-banner.wrong .fb-text{
     color: var(--bad);
-    font-size: clamp(15px, 3.6vw, 17px);
+    border: 1.5px solid var(--bad);
   }
-  @keyframes banner-pop{
+  @keyframes badge-pop{
     0%{ transform: scale(0.6); opacity: 0; }
-    60%{ transform: scale(1.08); opacity: 1; }
+    60%{ transform: scale(1.12); opacity: 1; }
     100%{ transform: scale(1); opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce){
-    .feedback-banner.show{ animation: none; }
+    .result-badge.show{ animation: none; transform: scale(1); opacity: 1; }
   }
 
   /* results */
@@ -413,15 +406,12 @@
       <div class="progress-fill" id="progress-fill" style="width:0%"></div>
     </div>
 
-    <div id="feedback-banner" class="feedback-banner">
-      <div class="fb-text" id="fb-text"></div>
-    </div>
-
     <div class="question-text" id="q-text">問題文がここに入ります</div>
 
     <div id="choices-holder"></div>
 
     <div class="explain" id="explain-box">
+      <span class="result-badge" id="result-badge"></span>
       <b>解説：</b><span id="explain-text"></span>
     </div>
 
@@ -708,9 +698,9 @@ function renderQuestion(){
   explainBox.classList.remove('show');
   document.getElementById('explain-text').textContent = '';
 
-  const banner = document.getElementById('feedback-banner');
-  banner.classList.remove('show', 'correct', 'wrong');
-  document.getElementById('fb-text').textContent = '';
+  const badge = document.getElementById('result-badge');
+  badge.classList.remove('show', 'correct', 'wrong');
+  badge.textContent = '';
 
   const nextBtn = document.getElementById('btn-next');
   nextBtn.disabled = true;
@@ -725,14 +715,13 @@ function selectChoice(i, btnEl){
   const buttons = document.querySelectorAll('#choices-holder .choice-btn');
   buttons.forEach(b=> b.disabled = true);
 
-  const banner = document.getElementById('feedback-banner');
-  const fbText = document.getElementById('fb-text');
+  const badge = document.getElementById('result-badge');
 
   if(i === item.a){
     btnEl.classList.add('correct');
     state.score++;
-    fbText.textContent = '⭕ 正解！';
-    banner.classList.add('correct');
+    badge.textContent = '⭕ 正解';
+    badge.classList.add('correct');
   } else {
     btnEl.classList.add('wrong');
     buttons[item.a].classList.add('correct');
@@ -742,13 +731,13 @@ function selectChoice(i, btnEl){
       right: item.choices[item.a],
       note: item.note
     });
-    fbText.textContent = '❌ ざんねん…';
-    banner.classList.add('wrong');
+    badge.textContent = '❌ 不正解';
+    badge.classList.add('wrong');
   }
   // restart animation even if same class was already shown
-  banner.classList.remove('show');
-  void banner.offsetWidth;
-  banner.classList.add('show');
+  badge.classList.remove('show');
+  void badge.offsetWidth;
+  badge.classList.add('show');
 
   document.getElementById('explain-text').textContent = item.note;
   document.getElementById('explain-box').classList.add('show');
