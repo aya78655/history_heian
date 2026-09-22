@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歴史クイズ 〜奈良時代・平安時代〜</title>
+<style>
+  :root{
+    --bg: #faf6ee;
+    --bg-card: #ffffff;
+    --ink: #2c2620;
+    --ink-soft: #6b6055;
+    --accent: #a8452f;
+    --accent-dark: #7c3220;
+    --accent-soft: #f1ded6;
+    --nara: #c98a3b;
+    --nara-soft: #f7ead2;
+    --heian: #4a6fa5;
+    --heian-soft: #dfe8f5;
+    --good: #2e7d4f;
+    --good-soft: #e0f2e6;
+    --bad: #b3392c;
+    --bad-soft: #fbe3df;
+    --border: #e4dccd;
+    --shadow: 0 4px 16px rgba(60, 45, 25, 0.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #1c1712;
+      --bg-card: #2a231c;
+      --ink: #f2ece1;
+      --ink-soft: #b8ac9b;
+      --accent: #e0836a;
+      --accent-dark: #f0a58f;
+      --accent-soft: #3c2b23;
+      --nara: #e0ac5f;
+      --nara-soft: #3a2f1e;
+      --heian: #8fb0e0;
+      --heian-soft: #212f42;
+      --good: #6fce97;
+      --good-soft: #1c3327;
+      --bad: #e58879;
+      --bad-soft: #3a201d;
+      --border: #423a30;
+      --shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #1c1712;
+    --bg-card: #2a231c;
+    --ink: #f2ece1;
+    --ink-soft: #b8ac9b;
+    --accent: #e0836a;
+    --accent-dark: #f0a58f;
+    --accent-soft: #3c2b23;
+    --nara: #e0ac5f;
+    --nara-soft: #3a2f1e;
+    --heian: #8fb0e0;
+    --heian-soft: #212f42;
+    --good: #6fce97;
+    --good-soft: #1c3327;
+    --bad: #e58879;
+    --bad-soft: #3a201d;
+    --border: #423a30;
+    --shadow: 0 4px 16px rgba(0,0,0,0.35);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "Meiryo", sans-serif;
+    min-height: 100vh;
+    line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap{
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px 16px 56px;
+  }
+
+  header.top{
+    text-align: center;
+    padding: 22px 0 8px;
+  }
+  header.top .kicker{
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  header.top h1{
+    margin: 6px 0 2px;
+    font-size: clamp(22px, 5.5vw, 30px);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  header.top p.sub{
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  .card{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 22px 20px;
+    margin-top: 18px;
+  }
+
+  h2.section-title{
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+  }
+
+  .choice-grid{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 480px){
+    .era-grid{ grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  .pick{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+    text-align: left;
+  }
+  .pick:hover{ transform: translateY(-1px); }
+  .pick.selected{
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+  }
+  .pick .dot{
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--border);
+    flex: none;
+  }
+  .pick.selected .dot{ background: var(--accent); }
+
+  .row-gap{ margin-top: 18px; }
+
+  button.primary{
+    display: block;
+    width: 100%;
+    padding: 15px 18px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(168,69,47,0.28);
+    transition: transform .1s ease, background .15s ease;
+  }
+  button.primary:hover{ background: var(--accent-dark); }
+  button.primary:active{ transform: scale(0.98); }
+  button.primary:disabled{
+    opacity: .5; cursor: not-allowed; box-shadow:none;
+  }
+
+  button.ghost{
+    display: block;
+    width: 100%;
+    padding: 13px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  /* quiz screen */
+  .quiz-meta{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .era-tag{
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .era-tag.nara{ background: var(--nara-soft); color: var(--nara); }
+  .era-tag.heian{ background: var(--heian-soft); color: var(--heian); }
+
+  .progress-track{
+    height: 8px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill{
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+
+  .question-text{
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0 20px;
+    line-height: 1.75;
+  }
+
+  .choice-btn{
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .choice-btn .letter{
+    flex: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .choice-btn:hover:not(:disabled){ border-color: var(--accent); }
+  .choice-btn:disabled{ cursor: default; }
+
+  .choice-btn.correct{
+    border-color: var(--good);
+    background: var(--good-soft);
+  }
+  .choice-btn.correct .letter{ background: var(--good); color: #fff; }
+
+  .choice-btn.wrong{
+    border-color: var(--bad);
+    background: var(--bad-soft);
+  }
+  .choice-btn.wrong .letter{ background: var(--bad); color: #fff; }
+
+  .explain{
+    margin-top: 6px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--ink);
+    display: none;
+  }
+  .explain.show{ display: block; }
+  .explain b{ color: var(--accent-dark); }
+
+  /* results */
+  .score-hero{
+    text-align: center;
+    padding: 10px 0 6px;
+  }
+  .score-hero .num{
+    font-size: 52px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .score-hero .denom{
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .score-hero .msg{
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .review-item{
+    border-top: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  .review-item:first-child{ border-top: none; }
+  .review-q{ font-weight: 700; font-size: 14.5px; margin-bottom: 6px; }
+  .review-a{ font-size: 13.5px; color: var(--ink-soft); }
+  .review-a .your{ color: var(--bad); font-weight: 700; }
+  .review-a .right{ color: var(--good); font-weight: 700; }
+
+  .hidden{ display: none !important; }
+
+  footer.foot{
+    text-align: center;
+    margin-top: 30px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="kicker">社会・歴史</div>
+    <h1>奈良時代・平安時代クイズ</h1>
+    <p class="sub">予習シリーズ 第3回・第4回のまとめ問題から出題</p>
+  </header>
+
+  <!-- ===== SETUP SCREEN ===== -->
+  <div id="screen-setup" class="card">
+    <h2 class="section-title">① 範囲をえらぶ</h2>
+    <div class="choice-grid era-grid" id="era-picker">
+      <div class="pick selected" data-era="all"><span class="dot"></span>ぜんぶ</div>
+      <div class="pick" data-era="nara"><span class="dot"></span>奈良時代のみ</div>
+      <div class="pick" data-era="heian"><span class="dot"></span>平安時代のみ</div>
+    </div>
+
+    <h2 class="section-title row-gap">② 問題数をえらぶ</h2>
+    <div class="choice-grid era-grid" id="count-picker">
+      <div class="pick" data-count="10"><span class="dot"></span>10問</div>
+      <div class="pick" data-count="20"><span class="dot"></span>20問</div>
+      <div class="pick selected" data-count="all"><span class="dot"></span>全問</div>
+    </div>
+
+    <div class="row-gap">
+      <button class="primary" id="btn-start">クイズをはじめる</button>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ SCREEN ===== -->
+  <div id="screen-quiz" class="card hidden">
+    <div class="quiz-meta">
+      <span id="q-counter">問題 1 / 10</span>
+      <span id="q-era-tag" class="era-tag nara">奈良時代</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="question-text" id="q-text">問題文がここに入ります</div>
+
+    <div id="choices-holder"></div>
+
+    <div class="explain" id="explain-box">
+      <b>解説：</b><span id="explain-text"></span>
+    </div>
+
+    <div class="row-gap">
+      <button class="primary" id="btn-next" disabled>次へ</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT SCREEN ===== -->
+  <div id="screen-result" class="card hidden">
+    <div class="score-hero">
+      <div class="num"><span id="res-score">0</span>/<span id="res-total">0</span></div>
+      <div class="denom">正解</div>
+      <div class="msg" id="res-msg"></div>
+    </div>
+
+    <div id="review-holder" class="row-gap"></div>
+
+    <div class="row-gap">
+      <button class="primary" id="btn-retry">もう一度おなじ設定で挑戦</button>
+      <button class="ghost" id="btn-setting">設定にもどる</button>
+    </div>
+  </div>
+
+  <footer class="foot">全て自分でノートを見直して確認しよう ✎</footer>
+</div>
+
+<script>
+/* ===========================================================
+   QUIZ DATA — 奈良時代(nara) / 平安時代(heian)
+   =========================================================== */
+const QUESTIONS = [
+  // ---------------- 奈良時代 ----------------
+  {era:"nara", q:"701年に唐の制度にならって定められた、刑罰と政治のしくみについての法律は何ですか。",
+   choices:["大宝律令","御成敗式目","十七条の憲法","武家諸法度"], a:0,
+   note:"701年、唐(中国)の制度にならって大宝律令が定められ、天皇を中心とした政治のしくみが完成しました。"},
+  {era:"nara", q:"律令政治で、地方の「郡」を治め、その地方の豪族が任命された役職は何ですか。",
+   choices:["国司","郡司","里長","防人"], a:1,
+   note:"国には都から国司が派遣されましたが、郡にはその地方の豪族が郡司として任命されました。"},
+  {era:"nara", q:"朝廷が6年ごとに作った戸籍にもとづいて、6歳以上の男女に口分田をあたえた制度を何といいますか。",
+   choices:["班田収授の法","三世一身の法","墾田永年私財法","荘園制度"], a:0,
+   note:"戸籍にもとづいて口分田をあたえる制度を班田収授の法といいます。"},
+  {era:"nara", q:"口分田にかけられた、収穫の約3％の稲を地方の役所に納める税を何といいますか。",
+   choices:["調","庸","租","雑徭"], a:2,
+   note:"口分田にかけられる税を租といい、収穫の約3％の稲を地方の役所に納めました。"},
+  {era:"nara", q:"地方の特産物を都に納める税を何といいますか。",
+   choices:["租","調","庸","雑徭"], a:1,
+   note:"地方の特産物を納める税を調といいます。"},
+  {era:"nara", q:"都で10日間働く代わりに布を納める税を何といいますか。",
+   choices:["租","調","庸","防人"], a:2,
+   note:"都で10日間働く代わりに布を納める税を庸といいます。"},
+  {era:"nara", q:"3年間、九州の守りについた兵士を何といいますか。",
+   choices:["衛士","防人","雑徭","郡司"], a:1,
+   note:"3年間九州の守りにつく兵士を防人といい、おもに関東地方の人があてられました。"},
+  {era:"nara", q:"地方から税として運ばれた産物につけられた、うすい木の板に文字を書いた荷札を何といいますか。",
+   choices:["木簡","戸籍","万葉集","風土記"], a:0,
+   note:"税の荷札として使われた、うすい木の板に文字を書いたものを木簡といいます。"},
+  {era:"nara", q:"710年、元明天皇のときに都が移された、奈良にある都は何ですか。",
+   choices:["平安京","平城京","長岡京","藤原京"], a:1,
+   note:"710年、元明天皇のときに都は奈良の平城京に移されました。唐の都・長安にならってつくられました。"},
+  {era:"nara", q:"聖武天皇が、社会の不安をしずめようとして力を借りようとしたものは何ですか。",
+   choices:["仏教","儒教","神道","道教"], a:0,
+   note:"聖武天皇は仏教の力によって社会の不安をしずめようと考えました。"},
+  {era:"nara", q:"743年、聖武天皇が総国分寺である東大寺につくるよう命じたものは何ですか。",
+   choices:["五重塔","大仏","鳳凰堂","金色堂"], a:1,
+   note:"743年、聖武天皇は東大寺に大仏をつくるよう命じ、752年に完成しました。"},
+  {era:"nara", q:"大仏づくりに協力し、各地で仏の教えを説き、池や橋・道路などをつくった僧はだれですか。",
+   choices:["鑑真","行基","最澄","空海"], a:1,
+   note:"行基は各地で仏の教えを説きながら、池や橋・道路などをつくり、大仏づくりに協力しました。"},
+  {era:"nara", q:"山上憶良が農民の苦しいくらしをよんだ、『万葉集』に収められている歌を何といいますか。",
+   choices:["貧窮問答歌","百人一首","古今和歌集","風土記"], a:0,
+   note:"山上憶良の貧窮問答歌には、農民の苦しいくらしがよまれています。"},
+  {era:"nara", q:"723年に定められた、新しく水路をつくって開墾すれば3代まで土地を私有してよいという法律は何ですか。",
+   choices:["墾田永年私財法","三世一身の法","班田収授の法","大宝律令"], a:1,
+   note:"723年の三世一身の法では、新しく水路をつくって開墾すれば、3代までその土地を私有してよいとされました。"},
+  {era:"nara", q:"743年に定められた、開墾した田を永久に自分のものにしてよいとした法律は何ですか。",
+   choices:["三世一身の法","墾田永年私財法","大宝律令","班田収授の法"], a:1,
+   note:"743年の墾田永年私財法により、開墾した田を永久に自分のものにできるようになりました。"},
+  {era:"nara", q:"墾田永年私財法によって貴族や寺社が増やした私有地は、のちに何とよばれるようになりましたか。",
+   choices:["公領","荘園","口分田","領地"], a:1,
+   note:"貴族や寺社が農民を使って開墾して増やした私有地は、のちに荘園とよばれるようになりました。"},
+  {era:"nara", q:"唐の僧で、僧の制度などを整え、奈良に唐招提寺を開いた人物はだれですか。",
+   choices:["行基","鑑真","最澄","空海"], a:1,
+   note:"鑑真は唐の僧で、6度目の航海でようやく来日し、僧の制度などを整え、唐招提寺を開きました。"},
+  {era:"nara", q:"8世紀初めの留学生で、唐に渡ったまま帰国できず、唐の皇帝に仕えた人物はだれですか。",
+   choices:["阿倍仲麻呂","山上憶良","小野妹子","犬上御田鍬"], a:0,
+   note:"阿倍仲麻呂は8世紀初めの留学生で、帰国できずに唐の皇帝に仕えました。"},
+  {era:"nara", q:"聖武天皇のころに最も栄えた、国際色豊かな文化を何といいますか。",
+   choices:["国風文化","天平文化","飛鳥文化","元禄文化"], a:1,
+   note:"聖武天皇のころに最も文化が栄え、このころの元号から天平文化とよばれます。"},
+  {era:"nara", q:"聖武天皇の日用品などを収めた、校倉造の建築様式でつくられた東大寺の宝物庫は何ですか。",
+   choices:["唐招提寺","正倉院","平等院鳳凰堂","中尊寺金色堂"], a:1,
+   note:"正倉院は聖武天皇の日用品などを収めた東大寺の宝物庫で、校倉造という建築様式でつくられました。"},
+  {era:"nara", q:"現存する日本最古の和歌集は何ですか。",
+   choices:["万葉集","古今和歌集","古事記","風土記"], a:0,
+   note:"万葉集は現存する日本最古の和歌集です。"},
+  {era:"nara", q:"712年に完成した、天皇が国を治めるようになったいわれについてまとめた書物は何ですか。",
+   choices:["日本書紀","古事記","風土記","万葉集"], a:1,
+   note:"712年に古事記が、720年には日本書紀が完成しました。"},
+
+  // ---------------- 平安時代 ----------------
+  {era:"heian", q:"794年、桓武天皇が律令政治を立て直そうと都を移した場所はどこですか。",
+   choices:["平城京","平安京","長岡京","大宰府"], a:1,
+   note:"794年、桓武天皇は律令政治を立て直そうと、都を平安京（現在の京都）に移しました。"},
+  {era:"heian", q:"桓武天皇が征夷大将軍に任命し、東北地方の蝦夷の抵抗をおさえさせた人物はだれですか。",
+   choices:["坂上田村麻呂","源義家","藤原純友","平将門"], a:0,
+   note:"坂上田村麻呂は征夷大将軍に任命され、東北地方に住んでいた蝦夷の抵抗をおさえました。"},
+  {era:"heian", q:"天皇が幼いときに藤原氏が就いた役職を何といいますか。",
+   choices:["関白","摂政","太政大臣","征夷大将軍"], a:1,
+   note:"天皇が幼いときは摂政として、成人してからは関白として藤原氏が実権をにぎりました。"},
+  {era:"heian", q:"藤原氏が摂政・関白の地位を独占して行った政治を何といいますか。",
+   choices:["院政","摂関政治","執権政治","律令政治"], a:1,
+   note:"藤原氏が摂政・関白として政治の実権をにぎる、このような政治を摂関政治といいます。"},
+  {era:"heian", q:"894年、菅原道真の提案によって停止されたものは何ですか。",
+   choices:["遣隋使","遣唐使","日宋貿易","勘合貿易"], a:1,
+   note:"894年、菅原道真の提案もあって遣唐使が停止されました。のちに道真は藤原氏によって大宰府に送られました。"},
+  {era:"heian", q:"11世紀前半、藤原氏の全盛期を築き、「この世をば わが世とぞ思ふ…」の歌をよんだ人物はだれですか。",
+   choices:["藤原頼通","藤原道長","藤原純友","藤原鎌足"], a:1,
+   note:"藤原道長は11世紀前半、子の藤原頼通とともに藤原氏の全盛期を築きました。"},
+  {era:"heian", q:"藤原頼通が、現在の京都府宇治市に建てた阿弥陀堂は何ですか。",
+   choices:["中尊寺金色堂","平等院鳳凰堂","東大寺","唐招提寺"], a:1,
+   note:"平等院鳳凰堂は藤原頼通が京都府宇治市に建てた阿弥陀堂です。"},
+  {era:"heian", q:"岩手県の平泉に、奥州藤原氏が建てた阿弥陀堂は何ですか。",
+   choices:["平等院鳳凰堂","中尊寺金色堂","延暦寺","金剛峯寺"], a:1,
+   note:"中尊寺金色堂は岩手県の平泉に、奥州藤原氏が建てました。"},
+  {era:"heian", q:"阿弥陀仏を信じることにより、極楽浄土に行けるという教えを何といいますか。",
+   choices:["浄土教","天台宗","真言宗","禅宗"], a:0,
+   note:"浄土教は阿弥陀仏を信じることにより、極楽浄土に行けるという教えで、貴族や豪族が阿弥陀堂を建てました。"},
+  {era:"heian", q:"天台宗を伝え、比叡山に延暦寺を建てた僧はだれですか。",
+   choices:["空海","最澄","鑑真","行基"], a:1,
+   note:"最澄は天台宗を伝え、比叡山に延暦寺を建てました。伝教大師ともよばれます。"},
+  {era:"heian", q:"真言宗を開き、高野山に金剛峯寺を建てた僧はだれですか。",
+   choices:["最澄","空海","鑑真","行基"], a:1,
+   note:"空海は真言宗を開き、高野山に金剛峯寺を建てました。弘法大師ともよばれます。"},
+  {era:"heian", q:"唐の文化を土台にして生まれた、日本の自然や生活にあった文化を何といいますか。",
+   choices:["天平文化","国風文化","飛鳥文化","桃山文化"], a:1,
+   note:"9世紀後半には、唐の文化を土台にして、日本独自の国風文化が生まれました。"},
+  {era:"heian", q:"紫式部が書いた、かな文字による長編物語は何ですか。",
+   choices:["枕草子","源氏物語","古今和歌集","竹取物語"], a:1,
+   note:"『源氏物語』は紫式部が書いた長編物語です。"},
+  {era:"heian", q:"清少納言が書いた随筆は何ですか。",
+   choices:["源氏物語","枕草子","土佐日記","徒然草"], a:1,
+   note:"『枕草子』は清少納言による随筆です。"},
+  {era:"heian", q:"貴族の屋敷のつくりを何といいますか。",
+   choices:["書院造","寝殿造","数寄屋造","校倉造"], a:1,
+   note:"貴族の屋敷のつくりは寝殿造とよばれます。"},
+  {era:"heian", q:"ふすまや屏風に見られる、やわらかな線で日本の風物を描いた絵を何といいますか。",
+   choices:["唐絵","大和絵","水墨画","浮世絵"], a:1,
+   note:"やわらかな線で日本の風物を描いた大和絵が、ふすまや屏風に見られます。"},
+  {era:"heian", q:"有力な武士団のうち、清和天皇を祖先とする一族は何ですか。",
+   choices:["平氏","源氏","藤原氏","橘氏"], a:1,
+   note:"清和天皇を祖先とする源氏（清和源氏）と、桓武天皇を祖先とする平氏（桓武平氏）が有力な武士団でした。"},
+  {era:"heian", q:"関東地方で起こった、武士による大きな反乱は何ですか。",
+   choices:["藤原純友の乱","平将門の乱","保元の乱","平治の乱"], a:1,
+   note:"10世紀半ば、関東地方で平将門の乱が、瀬戸内海で藤原純友の乱が起こりました。"},
+  {era:"heian", q:"瀬戸内海で起こった、伊予国の役人による反乱は何ですか。",
+   choices:["平将門の乱","藤原純友の乱","保元の乱","平治の乱"], a:1,
+   note:"藤原純友の乱は瀬戸内海で起こった反乱です。"},
+  {era:"heian", q:"1086年、白河天皇が上皇になったのちも行った政治を何といいますか。",
+   choices:["摂関政治","院政","執権政治","公家政治"], a:1,
+   note:"白河天皇は1086年に上皇になった後も政治を行い、これを院政といいます。"},
+  {era:"heian", q:"1167年、武士として初めて太政大臣となった人物はだれですか。",
+   choices:["源義朝","平清盛","平将門","藤原道長"], a:1,
+   note:"平清盛は1159年の平治の乱に勝利し、1167年に武士として初めて太政大臣となりました。"},
+  {era:"heian", q:"平清盛が整え、日宋貿易をさかんにするために使った港はどこですか。",
+   choices:["博多港","大輪田泊","堺港","長崎港"], a:1,
+   note:"平清盛は大輪田泊を整え、日宋貿易をさかんにして利益をあげました。"},
+  {era:"heian", q:"荘園において、税を払わなくてもよい権利を何といいますか。",
+   choices:["不入の権","不輸の権","治外法権","検断権"], a:1,
+   note:"不輸の権は税を払わなくてもよい権利、不入の権は役人の立ち入りを断る権利です。"},
+  {era:"heian", q:"1156年、上皇と天皇が対立して都で起こった争いは何ですか。",
+   choices:["平治の乱","保元の乱","応仁の乱","承久の乱"], a:1,
+   note:"1156年、上皇と天皇が対立し、保元の乱が起こりました。"}
+];
+
+/* ===========================================================
+   APP LOGIC
+   =========================================================== */
+let state = {
+  era: "all",
+  count: "all",
+  pool: [],
+  idx: 0,
+  score: 0,
+  answered: false,
+  wrong: []
+};
+
+const eraLabel = {nara:"奈良時代", heian:"平安時代"};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ---- setup screen interactions ---- */
+document.querySelectorAll('#era-picker .pick').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('#era-picker .pick').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    state.era = el.dataset.era;
+  });
+});
+document.querySelectorAll('#count-picker .pick').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('#count-picker .pick').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    state.count = el.dataset.count;
+  });
+});
+
+document.getElementById('btn-start').addEventListener('click', startQuiz);
+document.getElementById('btn-retry').addEventListener('click', startQuiz);
+document.getElementById('btn-setting').addEventListener('click', ()=>{
+  showScreen('setup');
+});
+document.getElementById('btn-next').addEventListener('click', nextQuestion);
+
+function buildPool(){
+  let base = QUESTIONS;
+  if(state.era === 'nara') base = QUESTIONS.filter(q=>q.era==='nara');
+  if(state.era === 'heian') base = QUESTIONS.filter(q=>q.era==='heian');
+
+  let pool = shuffle(base).map(q=>{
+    // shuffle choice order too, tracking correct index
+    const order = shuffle(q.choices.map((c,i)=>i));
+    const choices = order.map(i=>q.choices[i]);
+    const a = order.indexOf(q.a);
+    return {era:q.era, q:q.q, note:q.note, choices, a};
+  });
+
+  if(state.count !== 'all'){
+    pool = pool.slice(0, parseInt(state.count, 10));
+  }
+  return pool;
+}
+
+function startQuiz(){
+  state.pool = buildPool();
+  state.idx = 0;
+  state.score = 0;
+  state.wrong = [];
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(name){
+  document.getElementById('screen-setup').classList.toggle('hidden', name!=='setup');
+  document.getElementById('screen-quiz').classList.toggle('hidden', name!=='quiz');
+  document.getElementById('screen-result').classList.toggle('hidden', name!=='result');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderQuestion(){
+  const total = state.pool.length;
+  const item = state.pool[state.idx];
+  state.answered = false;
+
+  document.getElementById('q-counter').textContent = `問題 ${state.idx+1} / ${total}`;
+  const tag = document.getElementById('q-era-tag');
+  tag.textContent = eraLabel[item.era];
+  tag.className = 'era-tag ' + item.era;
+
+  document.getElementById('progress-fill').style.width = ((state.idx)/total*100) + '%';
+
+  document.getElementById('q-text').textContent = item.q;
+
+  const holder = document.getElementById('choices-holder');
+  holder.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  item.choices.forEach((choiceText, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choiceText}</span>`;
+    btn.addEventListener('click', ()=>selectChoice(i, btn));
+    holder.appendChild(btn);
+  });
+
+  const explainBox = document.getElementById('explain-box');
+  explainBox.classList.remove('show');
+  document.getElementById('explain-text').textContent = '';
+
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.disabled = true;
+  nextBtn.textContent = (state.idx === total-1) ? '結果を見る' : '次へ';
+}
+
+function selectChoice(i, btnEl){
+  if(state.answered) return;
+  state.answered = true;
+
+  const item = state.pool[state.idx];
+  const buttons = document.querySelectorAll('#choices-holder .choice-btn');
+  buttons.forEach(b=> b.disabled = true);
+
+  if(i === item.a){
+    btnEl.classList.add('correct');
+    state.score++;
+  } else {
+    btnEl.classList.add('wrong');
+    buttons[item.a].classList.add('correct');
+    state.wrong.push({
+      q: item.q,
+      your: item.choices[i],
+      right: item.choices[item.a],
+      note: item.note
+    });
+  }
+
+  document.getElementById('explain-text').textContent = item.note;
+  document.getElementById('explain-box').classList.add('show');
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion(){
+  const total = state.pool.length;
+  if(state.idx < total-1){
+    state.idx++;
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+}
+
+function finishQuiz(){
+  const total = state.pool.length;
+  document.getElementById('progress-fill').style.width = '100%';
+
+  document.getElementById('res-score').textContent = state.score;
+  document.getElementById('res-total').textContent = total;
+
+  const pct = Math.round((state.score/total)*100);
+  let msg = '';
+  if(pct === 100) msg = '満点！ すばらしい！';
+  else if(pct >= 80) msg = 'とてもよくできました！';
+  else if(pct >= 60) msg = 'もう少し！ 見直してみよう';
+  else msg = 'ノートを見直して、もう一度挑戦しよう';
+  document.getElementById('res-msg').textContent = `正答率 ${pct}％　${msg}`;
+
+  const reviewHolder = document.getElementById('review-holder');
+  reviewHolder.innerHTML = '';
+  if(state.wrong.length > 0){
+    const title = document.createElement('h2');
+    title.className = 'section-title';
+    title.textContent = '間違えた問題の復習';
+    reviewHolder.appendChild(title);
+
+    state.wrong.forEach(w=>{
+      const div = document.createElement('div');
+      div.className = 'review-item';
+      div.innerHTML = `
+        <div class="review-q">${w.q}</div>
+        <div class="review-a">あなたの答え：<span class="your">${w.your}</span>　→　正解：<span class="right">${w.right}</span></div>
+        <div class="review-a" style="margin-top:4px;">${w.note}</div>
+      `;
+      reviewHolder.appendChild(div);
+    });
+  }
+
+  showScreen('result');
+}
+</script>
+</body>
+</html>
